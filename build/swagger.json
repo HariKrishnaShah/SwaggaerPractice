@@ -62,6 +62,45 @@
 					}
 				]
 			},
+			"createResult": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"email": {
+						"type": "string"
+					},
+					"role": {
+						"$ref": "#/components/schemas/Role"
+					}
+				},
+				"required": [
+					"name",
+					"email",
+					"role"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"loginResult": {
+				"$ref": "#/components/schemas/createResult"
+			},
+			"login": {
+				"properties": {
+					"email": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"email",
+					"password"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"Details": {
 				"properties": {
 					"id": {
@@ -148,6 +187,40 @@
 				],
 				"security": [],
 				"parameters": []
+			}
+		},
+		"/user/login": {
+			"post": {
+				"operationId": "LoginUser",
+				"responses": {
+					"200": {
+						"description": "User Object",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/loginResult"
+								}
+							}
+						}
+					}
+				},
+				"description": "Login to the account",
+				"summary": "Login",
+				"tags": [
+					"User"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/login"
+							}
+						}
+					}
+				}
 			}
 		},
 		"/random": {

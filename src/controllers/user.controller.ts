@@ -1,6 +1,8 @@
 import { Controller, Post, Get, Route, Body, SuccessResponse, Tags, Middlewares, Header, Request, Security} from 'tsoa';
 import UserModel, { User, DocUser } from "../../models/user"
-import { NextFunction, Response, Request as ExpressRequest} from 'express';
+import { NextFunction} from 'express';
+import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
+
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv';
 import bcrypt from "bcrypt";
@@ -19,13 +21,46 @@ interface createResult {
     email: String,
     role : Role
 }
+type loginResult = createResult;
 
 
-const middlwareCalled = async(req:Request, res:Response, next:NextFunction)=>{
-    console.log("middleware called.")
-    console.log("The attached auth token is");
-    console.dirxml(await req.headers['authtoken']);
-    next()
+const middlwareCalled = async(req:any, res:Response, next:NextFunction)=>{
+    try
+    {
+        const cookies = req.headers.cookie;
+
+        if (cookies) {
+            const cookiesArray = cookies.split(';');
+            const accessTokenCookie = cookiesArray.find(cookie => cookie.trim().startsWith('access_token='));
+    
+            if (accessTokenCookie) {
+                const access_token = accessTokenCookie.split('=')[1];
+                const validJWT = jwt.verify(access_token, jwtSecret);
+                console.log("Jwt is valid or not? ");
+                console.dirxml(validJWT);
+                if(validJWT)
+                    {
+                        req.user = validJWT;
+                        next()
+                    }
+                    else{
+                        throw new Error("Access cookie not found");
+                    }
+    
+            } else {
+                console.log("Access token cookie not found");
+            }
+        } else {
+            throw new Error("Access cookie not found");
+        }
+        
+    }
+    catch(error)
+    {
+        console.log("Error occured: " + error)
+    }
+   
+   
 }
 
 @Route('user')
@@ -52,13 +87,13 @@ export class UserController extends Controller {
             console.log("sample user formed");
             const data = {id, role};
             const access_token = jwt.sign(data, jwtSecret, {expiresIn:"1h"});
-            const options = {httpOnly:true, secure:true}
+            const options = {httpOnly:true, secure:false}
             console.log("cookies set");
             const cookieOptions = Object.entries(options)
-            .map(([key, value]) => `${key}=${value ? 'true' : 'false'}`)
-            .join('; ');
+    .map(([key, value]) => `${key}=${value ? 'true' : 'false'}`)
+    .join('; ');
             console.log("Reached here");
-            this.setHeader("Set-Cookie", `access_token = Bearer ${access_token}; ${cookieOptions}`);
+            this.setHeader("Set-Cookie", `access_token =${access_token}; ${cookieOptions}`);
             // res.cookie('access_token', "Latest token by Hari", options);
             this.setStatus(200)
             return JSON.parse(JSON.stringify(user));
@@ -68,57 +103,66 @@ export class UserController extends Controller {
         }
     }
 
+   
     /**
-     * Get all users
-     * @summary Get All Users
-     */
-    @Get('get')
-    // @Security('cookieAuth')
-    public async getUsers(@Request() request:ExpressRequest): Promise<DocUser[]> {
-        try {
-            console.log("Get Users called");
-            const users: DocUser[] = await UserModel.find();
-           const access_token = request.cookies.access_token;
-           console.log("Got cookie " + access_token);
-            return JSON.parse(JSON.stringify(users));
-        } catch (error) {
-            this.setStatus(500);
-            throw new Error("Internal server error occurred.");
-        }
+ * Get all users
+ * @summary Get All Users
+ */
+@Get('get')
+@Middlewares(middlwareCalled)
+// @Security('cookieAuth')
+public async getUsers(@Request() req: any): Promise<DocUser[]> {
+    try {
+        console.log("Incoming user details");
+        console.dirxml(req.user);
+        const users: DocUser[] = await UserModel.find();
+        return JSON.parse(JSON.stringify(users));
+    } catch (error) {
+        this.setStatus(500);
+        throw new Error("Internal server error occurred.");
     }
-//  /**
-//      * Login to the account
-//      * @summary Login
-//      */
-//     @Get("login")
-//     public async loginUser(@Request() request:login): Promise<String>{
-//         try{
-//             const {id, role, password} = await UserModel.findOne({name:request.email});
-//             const validPassword = bcrypt.compare(request.password, password);
-//             if(validPassword)
-//                 {
-//                     this.setStatus(200);
-//                     const data = {id, role};
-//                     const access_token = jwt.sign(data, jwtSecret, {expiresIn:"1h"});
-//                     const options = {httpOnly:true, secure:true}
-//                     const cookieOptions = Object.entries(options)
-//                     .map(([key, value]) => `${key}=${value ? 'true' : 'false'}`)
-//                     .join('; ');
-            
-//                     this.setHeader("Set-Cookie", `access_token = Bearer ${access_token}; ${cookieOptions}`);
-//                     return "Login Successful"
-//                 }
-//                 else{
-//                     this.setStatus(404);
-//                     return "Credentials are invalid";
-//                 }
-//         }
-//         catch(error)
-//         {
-//             this.setStatus(502);
-//             throw new Error("Internal server error occured.");
-//         }
+}
+
+     /**
+     * Login to the account
+     * @summary Login
+     */
+    @Post("login")
+    @SuccessResponse('200', 'User Object')
+    public async loginUser(@Body() requestBody:login): Promise<loginResult>{
+        try{
+            const user = await UserModel.findOne({email:requestBody.email});
+            if(!user)
+                {
+                    this.setStatus(404)
+                    return JSON.parse(JSON.stringify("User not found"));
+                }
+            const validPassword = await bcrypt.compare(requestBody.password, user.password);
+            if(validPassword)
+                {
+                    const data = {id:user.id, role: user.role};
+                    const access_token = jwt.sign(data, jwtSecret, {expiresIn:"1h"});
+                    const options = {httpOnly:true, secure:false}
+                    const cookieOptions = Object.entries(options)
+                    .map(([key, value]) => `${key}=${value ? 'true' : 'false'}`)
+                    .join('; ');
+
+                    this.setStatus(200);
+                    this.setHeader("Set-Cookie", `access_token =${access_token}; ${cookieOptions}`);
+                    return JSON.parse(JSON.stringify({name:user.username, role:user.role, email:user.email}))
+                    
+                }
+                else{
+                    this.setStatus(404);
+                    return JSON.parse(JSON.stringify("Credentils are wrong."))
+                }
+        }
+        catch(error)
+        {
+            this.setStatus(502);
+            throw new Error("Internal server error occured.");
+        }
 
         
-//     }
+    }
 }
