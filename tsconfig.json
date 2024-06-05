@@ -1,0 +1,14 @@
+{ 
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "esModuleInterop": true,
+    
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  }
+}
