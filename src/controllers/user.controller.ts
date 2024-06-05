@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Route, Body, SuccessResponse, Tags, Middlewares, Header, Request} from 'tsoa';
+import { Controller, Post, Get, Route, Body, SuccessResponse, Tags, Middlewares, Header, Request, Security} from 'tsoa';
 import UserModel, { User, DocUser } from "../../models/user"
 import { NextFunction, Response, Request as ExpressRequest, Response as ExpressResponse} from 'express';
 
@@ -50,6 +50,7 @@ export class UserController extends Controller {
      * @summary Get All Users
      */
     @Get('get')
+    // @Security('cookieAuth')
     public async getUsers(@Request() request:ExpressRequest): Promise<DocUser[]> {
         try {
             console.log("Get Users called");

@@ -9,5 +9,11 @@
     },
     "routes": {
       "routesDir": "build"
-    }
+    },
+    "securityDefinitions": {
+      "cookieAuth": {
+          "type": "cookie",
+          "name": "access_token"
+      }
+  }
   }
