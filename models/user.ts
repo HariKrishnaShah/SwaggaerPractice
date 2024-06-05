@@ -7,7 +7,16 @@ export interface User {
     email: string;
     password: string;
 }
-export type DocUser = User & {createdAt?: Date;};
+export enum Role{
+    Admin = "ADMIN",
+    User = "USER",
+    SuperAdmin = "SUPERADMIN"
+} 
+interface doc {
+    createdAt: Date;
+    role : Role
+}
+export type DocUser = User & doc;
 export interface UserModelSchema extends Model<DocUser> {}
 
 
@@ -27,7 +36,12 @@ const userSchema: Schema<DocUser> = new Schema<DocUser>({
     password: {
         type: String,
         required: true,
-        minlength: 6
+    },
+    role:{
+        type: String,
+        required:true,
+        enum: Object.values(Role),
+        default: Role.User
     },
     createdAt: {
         type: Date,

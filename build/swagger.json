@@ -27,19 +27,38 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"Role": {
+				"enum": [
+					"ADMIN",
+					"USER",
+					"SUPERADMIN"
+				],
+				"type": "string"
+			},
+			"doc": {
+				"properties": {
+					"createdAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"role": {
+						"$ref": "#/components/schemas/Role"
+					}
+				},
+				"required": [
+					"createdAt",
+					"role"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"DocUser": {
 				"allOf": [
 					{
 						"$ref": "#/components/schemas/User"
 					},
 					{
-						"properties": {
-							"createdAt": {
-								"type": "string",
-								"format": "date-time"
-							}
-						},
-						"type": "object"
+						"$ref": "#/components/schemas/doc"
 					}
 				]
 			},
