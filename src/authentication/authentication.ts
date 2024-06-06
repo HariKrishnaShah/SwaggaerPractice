@@ -3,7 +3,7 @@ import * as jwt from "jsonwebtoken";
 import dotenv from 'dotenv';
 dotenv.config();
 const jwtSecret = process.env.jwtSecret;
-//Http only cookie based authentication
+// Http only cookie based authentication
 // export async function expressAuthentication(req: any,
 //     securityName: string,
 //     scopes?: string[]){
@@ -39,8 +39,8 @@ const jwtSecret = process.env.jwtSecret;
 //     {
 //     }
    
-   
 // }
+
 // jwt token based authentication
 export async function expressAuthentication(req: any,
     securityName: string,

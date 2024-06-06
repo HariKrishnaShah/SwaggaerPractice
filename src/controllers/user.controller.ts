@@ -5,7 +5,6 @@ import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv';
 import bcrypt from "bcrypt";
 import { Role } from '../../models/user';
-import { authMiddleware } from './middleware/authMiddleware';
 dotenv.config();
 const jwtSecret = process.env.jwtSecret;
 const salt = 10
@@ -79,7 +78,7 @@ export class UserController extends Controller {
 @SuccessResponse('200', "Array of User Objects")
 @Response('401', 'Unauthorized')
 @Response('500', 'Internal Servel Error')
-// @Security('access_token')
+// @Security('cookieAuth')
 @Security("BearerAuth")
 public async getUsers(@Request() req: any): Promise<DocUser[] | String> {
     try {
@@ -161,6 +160,7 @@ public async getUsers(@Request() req: any): Promise<DocUser[] | String> {
 @Response('500', 'Internal Servel Error')
 @Security("BearerAuth")
 // @Middlewares(authMiddleware)
+// @Security('cookieAuth')
 public async getllUsers(@Request() req: any): Promise<DocUser[] | String> {
     try {
         const users: DocUser[] = await UserModel.find();
