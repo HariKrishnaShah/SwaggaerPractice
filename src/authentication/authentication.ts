@@ -1,12 +1,8 @@
 import { NextFunction} from 'express';
-import * as express from "express";
 import * as jwt from "jsonwebtoken";
 import dotenv from 'dotenv';
-import bcrypt from "bcrypt";
-import { Role } from '../../models/user';
 dotenv.config();
 const jwtSecret = process.env.jwtSecret;
-const salt = 10
 export async function expressAuthentication(req: any,
     securityName: string,
     scopes?: string[]){

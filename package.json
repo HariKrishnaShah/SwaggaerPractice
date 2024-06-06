@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "start": "ts-node src/server.ts"
+    "start": "ts-node src/server.ts",
+    "build": "npx tsoa spec-and-routes && ts-node src/server.ts"
   },
   "dependencies": {
     "@tsoa/runtime": "^6.2.1",

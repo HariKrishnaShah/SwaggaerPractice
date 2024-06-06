@@ -1,12 +1,11 @@
-import { Controller, Post, Get, Route, Body, SuccessResponse, Tags, Middlewares, Header, Request, Security, Response} from 'tsoa';
+import { Controller, Post, Get, Route, Body, SuccessResponse, Tags, Header, Request, Security, Response, Middlewares} from 'tsoa';
 import UserModel, { User, DocUser } from "../../models/user"
 import { isValidCreateUser, isValidEmail } from '../utils/createUser.validator';
-
-
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv';
 import bcrypt from "bcrypt";
 import { Role } from '../../models/user';
+import { authMiddleware } from './middleware/authMiddleware';
 dotenv.config();
 const jwtSecret = process.env.jwtSecret;
 const salt = 10
@@ -23,44 +22,6 @@ interface createResult {
 }
 type loginResult = createResult;
 
-
-// const middlwareCalled = async(req:any, res:Response, next:NextFunction)=>{
-//     try
-//     {
-//         const cookies = req.headers.cookie;
-
-//         if (cookies) {
-//             const cookiesArray = cookies.split(';');
-//             const accessTokenCookie = cookiesArray.find(cookie => cookie.trim().startsWith('access_token='));
-    
-//             if (accessTokenCookie) {
-//                 const access_token = accessTokenCookie.split('=')[1];
-//                 const validJWT = jwt.verify(access_token, jwtSecret);
-               
-//                 if(validJWT)
-//                     {
-//                         req.user = validJWT;
-//                         next()
-//                     }
-//                     else{
-//                         throw new Error("Access cookie not found");
-//                     }
-    
-//             } else {
-//                 console.log("Access token cookie not found");
-//             }
-//         } else {
-//             throw new Error("Access cookie not found");
-//         }
-        
-//     }
-//     catch(error)
-//     {
-//         next(error);
-//     }
-   
-   
-// }
 
 @Route('user')
 @Tags('User')
@@ -98,7 +59,6 @@ export class UserController extends Controller {
         cookieOptions += `; Expires=${expiryDate.toUTCString()}`;
 
             this.setHeader("Set-Cookie", `access_token =${access_token}; ${cookieOptions}`);
-            // res.cookie('access_token', "Latest token by Hari", options);
             this.setStatus(200);
             return JSON.parse(JSON.stringify(user));
         } catch (error) {
@@ -110,7 +70,6 @@ export class UserController extends Controller {
                 return "Internal Server Error"   
         }
     }
-
    
     /**
  * Get all users
@@ -120,8 +79,7 @@ export class UserController extends Controller {
 @SuccessResponse('200', "Array of User Objects")
 @Response('401', 'Unauthorized')
 @Response('500', 'Internal Servel Error')
-// @Middlewares(middlwareCalled)
-@Security('access_token', ['read:example'])
+@Security('access_token')
 public async getUsers(@Request() req: any): Promise<DocUser[] | String> {
     try {
         const users: DocUser[] = await UserModel.find();
@@ -134,7 +92,7 @@ public async getUsers(@Request() req: any): Promise<DocUser[] | String> {
             this.setStatus(500);
             return "Internal Server Error";
         }
-    }
+    } 
 }
 
      /**
@@ -147,7 +105,7 @@ public async getUsers(@Request() req: any): Promise<DocUser[] | String> {
     @Response('500', 'Internal Server Error')
     public async loginUser(@Body() requestBody:login): Promise<loginResult | string>{
         try{
-            if(isValidEmail(requestBody.email))
+            if(!isValidEmail(requestBody.email))
                 {
                     this.setStatus(400)
                     throw new Error("Invalid From Data");
@@ -189,6 +147,32 @@ public async getUsers(@Request() req: any): Promise<DocUser[] | String> {
                 return "Internal Server Error"   
         }
         }
+
+
+         /**
+ * Get all users
+ * @summary Get All Users
+ */
+@Get('getall')
+@SuccessResponse('200', "Array of User Objects")
+@Response('401', 'Unauthorized')
+@Response('500', 'Internal Servel Error')
+@Middlewares(authMiddleware)
+public async getllUsers(@Request() req: any, @Header("authorization") authorization: string ): Promise<DocUser[] | String> {
+    try {
+        
+        const users: DocUser[] = await UserModel.find();
+        return JSON.parse(JSON.stringify(users));
+    } catch (error) {
+        if (error instanceof Error) {
+            return "Error occurred: " + error.message;
+        }
+        else{
+            this.setStatus(500);
+            return "Internal Server Error";
+        }
+    } 
+}
 
         
     }

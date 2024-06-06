@@ -4,7 +4,7 @@
   "controllerPathGlobs": ["src/controllers/*.ts"],
   "spec": {
     "outputDirectory": "build",
-    "specVersion": 3
+    "specVersion": 2
   },
   "routes": {
     "routesDir": "build",

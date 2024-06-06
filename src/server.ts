@@ -6,7 +6,6 @@ import swaggerJsdoc from 'swagger-jsdoc';
 import path from 'path';
 import { RegisterRoutes } from "../build/routes";
 import cookieParser from 'cookie-parser';
-// import userRoutes from "../routes/user.routes"
 import SwaggerJson from "../build/swagger.json"
 
 
@@ -26,22 +25,7 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello, TypeScript!');
 });
 connectToDB();
-console.log("Connected to DB");
-// app.use("/user", userRoutes);
 
-// const options: swaggerJsdoc.Options = {
-//   definition: {
-//     openapi: '3.0.0',
-//     info: {
-//       title: 'Sample API',
-//       version: '1.0.0',
-//       description: 'A simple Node.js server with Swagger documentation',
-//     },
-//   },
-//   apis: ['./routes/**/*.ts'], // Path to the API routes
-// };
-
-// const specs = swaggerJsdoc(options);
 app.use(["/openapi", "/docs", "/swagger"], swaggerUI.serve, swaggerUI.setup(SwaggerJson,{
   swaggerOptions: {
     validatorUrl: null, // Disable Swagger validation
