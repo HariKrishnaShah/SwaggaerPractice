@@ -73,13 +73,14 @@ export class UserController extends Controller {
    
     /**
  * Get all users
- * @summary Get All Users
+ * @summary Testing protected route(uses http only cookies)
  */
 @Get('get')
 @SuccessResponse('200', "Array of User Objects")
 @Response('401', 'Unauthorized')
 @Response('500', 'Internal Servel Error')
-@Security('access_token')
+// @Security('access_token')
+@Security("BearerAuth")
 public async getUsers(@Request() req: any): Promise<DocUser[] | String> {
     try {
         const users: DocUser[] = await UserModel.find();
@@ -150,17 +151,18 @@ public async getUsers(@Request() req: any): Promise<DocUser[] | String> {
 
 
          /**
- * Get all users
- * @summary Get All Users
+ * Get all users using jwt token
+ * @summary Testing protected route(using jwt token)
  */
 @Get('getall')
+@Security('jwt')
 @SuccessResponse('200', "Array of User Objects")
 @Response('401', 'Unauthorized')
 @Response('500', 'Internal Servel Error')
-@Middlewares(authMiddleware)
-public async getllUsers(@Request() req: any, @Header("authorization") authorization: string ): Promise<DocUser[] | String> {
+@Security("BearerAuth")
+// @Middlewares(authMiddleware)
+public async getllUsers(@Request() req: any): Promise<DocUser[] | String> {
     try {
-        
         const users: DocUser[] = await UserModel.find();
         return JSON.parse(JSON.stringify(users));
     } catch (error) {

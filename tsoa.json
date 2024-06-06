@@ -4,23 +4,17 @@
   "controllerPathGlobs": ["src/controllers/*.ts"],
   "spec": {
     "outputDirectory": "build",
-    "specVersion": 2
+    "specVersion": 2,
+    "securityDefinitions": {
+		"BearerAuth": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "JWT authorization token"
+    }}
   },
   "routes": {
     "routesDir": "build",
     "authenticationModule": "src/authentication/authentication.ts"
-  },
-  "securityDefinitions": {
-    "cookieAuth": {
-      "type": "apiKey",
-      "name": "access_token",
-      "in": "cookie",
-      "description": "access_token stored in http only cookie"
-    },
-    "BearerAuth":{
-      "type":"http",
-      "scheme":"bearer",
-      "bearerFormat":"JWT"
-    }
   }
 }

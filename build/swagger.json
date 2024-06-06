@@ -195,13 +195,13 @@
 					}
 				},
 				"description": "Get all users",
-				"summary": "Get All Users",
+				"summary": "Testing protected route(uses http only cookies)",
 				"tags": [
 					"User"
 				],
 				"security": [
 					{
-						"access_token": []
+						"BearerAuth": []
 					}
 				],
 				"parameters": []
@@ -268,20 +268,20 @@
 						"description": "Internal Servel Error"
 					}
 				},
-				"description": "Get all users",
-				"summary": "Get All Users",
+				"description": "Get all users using jwt token",
+				"summary": "Testing protected route(using jwt token)",
 				"tags": [
 					"User"
 				],
-				"security": [],
-				"parameters": [
+				"security": [
 					{
-						"in": "header",
-						"name": "authorization",
-						"required": true,
-						"type": "string"
+						"jwt": []
+					},
+					{
+						"BearerAuth": []
 					}
-				]
+				],
+				"parameters": []
 			}
 		},
 		"/random": {
@@ -311,5 +311,12 @@
 		"application/json"
 	],
 	"swagger": "2.0",
-	"securityDefinitions": {}
+	"securityDefinitions": {
+		"BearerAuth": {
+			"type": "apiKey",
+			"name": "Authorization",
+			"in": "header",
+			"description": "JWT authorization token"
+		}
+	}
 }
