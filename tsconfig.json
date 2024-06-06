@@ -9,6 +9,9 @@
     "esModuleInterop": true,
     
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "strictNullChecks": true, // Enforce strict null checks
+    "sourceMap": true, // Enable source maps
+    "declaration": true // Generate declaration files
   }
 }

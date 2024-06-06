@@ -135,10 +135,23 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/DocUser"
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/DocUser"
+										},
+										{
+											"type": "string"
+										}
+									]
 								}
 							}
 						}
+					},
+					"400": {
+						"description": "Bad Request"
+					},
+					"500": {
+						"description": "Internal Server Error"
 					}
 				},
 				"description": "Create a new user",
@@ -167,17 +180,30 @@
 				"operationId": "GetUsers",
 				"responses": {
 					"200": {
-						"description": "Ok",
+						"description": "Array of User Objects",
 						"content": {
 							"application/json": {
 								"schema": {
-									"items": {
-										"$ref": "#/components/schemas/DocUser"
-									},
-									"type": "array"
+									"anyOf": [
+										{
+											"items": {
+												"$ref": "#/components/schemas/DocUser"
+											},
+											"type": "array"
+										},
+										{
+											"type": "string"
+										}
+									]
 								}
 							}
 						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"500": {
+						"description": "Internal Servel Error"
 					}
 				},
 				"description": "Get all users",
@@ -185,7 +211,13 @@
 				"tags": [
 					"User"
 				],
-				"security": [],
+				"security": [
+					{
+						"access_token": [
+							"read:example"
+						]
+					}
+				],
 				"parameters": []
 			}
 		},
@@ -198,10 +230,23 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/loginResult"
+									"anyOf": [
+										{
+											"$ref": "#/components/schemas/loginResult"
+										},
+										{
+											"type": "string"
+										}
+									]
 								}
 							}
 						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					},
+					"500": {
+						"description": "Internal Server Error"
 					}
 				},
 				"description": "Login to the account",

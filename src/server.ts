@@ -7,6 +7,7 @@ import path from 'path';
 import { RegisterRoutes } from "../build/routes";
 import cookieParser from 'cookie-parser';
 // import userRoutes from "../routes/user.routes"
+import SwaggerJson from "../build/swagger.json"
 
 
 
@@ -41,7 +42,15 @@ console.log("Connected to DB");
 // };
 
 // const specs = swaggerJsdoc(options);
-app.use(["/openapi", "/docs", "/swagger"], swaggerUI.serve, swaggerUI.setup(require("../build/swagger.json")));
+app.use(["/openapi", "/docs", "/swagger"], swaggerUI.serve, swaggerUI.setup(SwaggerJson,{
+  swaggerOptions: {
+    validatorUrl: null, // Disable Swagger validation
+    docExpansion: 'list',
+    defaultModelsExpandDepth: -1,
+    defaultModelExpandDepth: -1,
+  },
+  customSiteTitle: 'My Swagger Documentation',
+}));
 
 app.get('/swagger.json', (req, res) => {
     res.sendFile(path.join(__dirname, '../build/swagger.json'));

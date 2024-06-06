@@ -1,19 +1,26 @@
-
 {
-    "entryFile": "src/server.ts",
-    "noImplicitAdditionalProperties": "throw-on-extras",
-    "controllerPathGlobs": ["src/controllers/*.ts"],
-    "spec": {
-      "outputDirectory": "build",
-      "specVersion": 3
+  "entryFile": "src/server.ts",
+  "noImplicitAdditionalProperties": "throw-on-extras",
+  "controllerPathGlobs": ["src/controllers/*.ts"],
+  "spec": {
+    "outputDirectory": "build",
+    "specVersion": 3
+  },
+  "routes": {
+    "routesDir": "build",
+    "authenticationModule": "src/authentication/authentication.ts"
+  },
+  "securityDefinitions": {
+    "cookieAuth": {
+      "type": "apiKey",
+      "name": "access_token",
+      "in": "cookie",
+      "description": "access_token stored in http only cookie"
     },
-    "routes": {
-      "routesDir": "build"
-    },
-    "securityDefinitions": {
-      "cookieAuth": {
-          "type": "cookie",
-          "name": "access_token"
-      }
+    "BearerAuth":{
+      "type":"http",
+      "scheme":"bearer",
+      "bearerFormat":"JWT"
+    }
   }
-  }
+}
