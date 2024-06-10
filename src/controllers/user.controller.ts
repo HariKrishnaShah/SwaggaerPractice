@@ -1,14 +1,32 @@
-import { Controller, Post, Get, Route, Body, SuccessResponse, Tags, Header, Request, Security, Response, Middlewares} from 'tsoa';
+import { Controller, Post, Get, Route, Body, SuccessResponse, Tags, Header, Request, Security, Response, Middlewares, FormField, UploadedFile, Produces} from 'tsoa';
 import UserModel, { User, DocUser } from "../../models/user"
 import { isValidCreateUser, isValidEmail } from '../utils/createUser.validator';
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv';
 import bcrypt from "bcrypt";
 import { Role } from '../../models/user';
+import { ImageModel } from 'models/images';
+import { File } from 'buffer';
+import multer from "multer"
+import path = require('path');
+import {Request as ExpressRequest, Response as ExpressResponse} from 'express'
+
 dotenv.config();
 const jwtSecret = process.env.jwtSecret;
 const salt = 10
 
+
+const storage = multer.diskStorage({
+    destination: path.join(__dirname, '..', 'public', 'uploads'), // Set the destination directory
+    filename: (req, file, cb) => {
+      const timestamp = Date.now(); // Generate a unique timestamp
+      const extension = path.extname(file.originalname); // Get the file extension
+      const filename = `${timestamp}${extension}`; // Construct the filename with timestamp and extension
+      cb(null, filename); // Call the callback with the constructed filename
+    },
+  });
+  
+const upload = multer({ storage }); // Create the Multer instance with the configured storage
 interface login{
     email : string,
     password: string,
@@ -72,7 +90,7 @@ export class UserController extends Controller {
    
     /**
  * Get all users
- * @summary Testing protected route(uses http only cookies)
+ * @summary Testing protected route example 1
  */
 @Get('get')
 @SuccessResponse('200', "Array of User Objects")
@@ -80,7 +98,7 @@ export class UserController extends Controller {
 @Response('500', 'Internal Servel Error')
 // @Security('cookieAuth')
 @Security("BearerAuth")
-public async getUsers(@Request() req: any): Promise<DocUser[] | String> {
+public async getUsers(@Request() req: any): Promise<DocUser[] | String> {       
     try {
         const users: DocUser[] = await UserModel.find();
         return JSON.parse(JSON.stringify(users));
@@ -101,7 +119,7 @@ public async getUsers(@Request() req: any): Promise<DocUser[] | String> {
      */
     @Post("login")
     @SuccessResponse('200', 'User Object')
-    @Response("401", "Unauthorized")
+    @Response("400", "Invalid Form Data")
     @Response('500', 'Internal Server Error')
     public async loginUser(@Body() requestBody:login): Promise<loginResult | string>{
         try{
@@ -151,10 +169,10 @@ public async getUsers(@Request() req: any): Promise<DocUser[] | String> {
 
          /**
  * Get all users using jwt token
- * @summary Testing protected route(using jwt token)
+ * @summary Testing protected route example 2
  */
 @Get('getall')
-@Security('jwt')
+// @Security('jwt')
 @SuccessResponse('200', "Array of User Objects")
 @Response('401', 'Unauthorized')
 @Response('500', 'Internal Servel Error')
@@ -175,7 +193,32 @@ public async getllUsers(@Request() req: any): Promise<DocUser[] | String> {
         }
     } 
 }
+      
+@Post('uploadImage')
+  @SuccessResponse('200', 'Image uploaded successfully')
+  @Response('500', 'Internal Server Error')
+  public async uploadImage(
+    @Request() request: Express.Request,
+    @FormField() description: string,
+    @UploadedFile('file') file: Express.Multer.File
+  ): Promise<string> {
+    try {
+    //   await new Promise<void>((resolve, reject) => {
+    //     upload.single('file')(request, request.res, (error) => {
+    //       if (error) {
+    //         reject(error);
+    //       } else {
+    //         resolve();
+    //       }
+    //     });
+    //   });
 
-        
+      return `Image uploaded successfully. Filename is ${file.filename}`;
+    } catch (error) {
+      return 'Error occurred while uploading image';
     }
+  }
+
+
+}
 

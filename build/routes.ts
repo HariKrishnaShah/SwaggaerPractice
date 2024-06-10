@@ -9,6 +9,8 @@ import { RandomController } from './../src/controllers/random.controller';
 import { expressAuthentication } from './../src/authentication/authentication';
 // @ts-ignore - no great way to install types from subpackage
 import type { Request as ExRequest, Response as ExResponse, RequestHandler, Router } from 'express';
+const multer = require('multer');
+const upload = multer({"limits":{"fileSize":8388608}});
 
 const expressAuthenticationRecasted = expressAuthentication as (req: ExRequest, securityName: string, scopes?: string[], res?: ExResponse) => Promise<any>;
 
@@ -180,7 +182,7 @@ export function RegisterRoutes(app: Router) {
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         app.get('/user/getall',
-            authenticateMiddleware([{"jwt":[]},{"BearerAuth":[]}]),
+            authenticateMiddleware([{"BearerAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(UserController)),
             ...(fetchMiddlewares<RequestHandler>(UserController.prototype.getllUsers)),
 
@@ -199,6 +201,39 @@ export function RegisterRoutes(app: Router) {
 
               await templateService.apiHandler({
                 methodName: 'getllUsers',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: 200,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.post('/user/uploadImage',
+            upload.fields([{"name":"file"}]),
+            ...(fetchMiddlewares<RequestHandler>(UserController)),
+            ...(fetchMiddlewares<RequestHandler>(UserController.prototype.uploadImage)),
+
+            async function UserController_uploadImage(request: ExRequest, response: ExResponse, next: any) {
+            const args: Record<string, TsoaRoute.ParameterSchema> = {
+                    request: {"in":"request","name":"request","required":true,"dataType":"object"},
+                    description: {"in":"formData","name":"description","required":true,"dataType":"string"},
+                    file: {"in":"formData","name":"file","required":true,"dataType":"file"},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args, request, response });
+
+                const controller = new UserController();
+
+              await templateService.apiHandler({
+                methodName: 'uploadImage',
                 controller,
                 response,
                 next,

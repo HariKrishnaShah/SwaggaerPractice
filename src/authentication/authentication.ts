@@ -44,7 +44,7 @@ const jwtSecret = process.env.jwtSecret;
 // jwt token based authentication
 export async function expressAuthentication(req: any,
     securityName: string,
-    scopes?: string[]){
+    scopes?: string[]|any){
         try {
             const token = await req.headers.authorization?.split(" ")[1];
             if (!token) {

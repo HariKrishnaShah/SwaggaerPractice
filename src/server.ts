@@ -7,7 +7,7 @@ import path from 'path';
 import { RegisterRoutes } from "../build/routes";
 import cookieParser from 'cookie-parser';
 import SwaggerJson from "../build/swagger.json"
-
+import multer from 'multer';
 
 
 // Create Express server
@@ -35,11 +35,24 @@ app.use(["/openapi", "/docs", "/swagger"], swaggerUI.serve, swaggerUI.setup(Swag
   },
   customSiteTitle: 'My Swagger Documentation',
 }));
+app.use(express.static(path.join(__dirname, "../", 'public', "uploads")));
 
 app.get('/swagger.json', (req, res) => {
     res.sendFile(path.join(__dirname, '../build/swagger.json'));
 });
 
+
+const storage = multer.diskStorage({
+  destination: path.join(__dirname, '..', 'public', 'uploads'), // Set the destination directory
+  filename: (req, file, cb) => {
+    const timestamp = Date.now(); // Generate a unique timestamp
+    const extension = path.extname(file.originalname); // Get the file extension
+    const filename = `${timestamp}${extension}`; // Construct the filename with timestamp and extension
+    cb(null, filename); // Call the callback with the constructed filename
+  },
+});
+
+const upload = multer({ storage });
 
 // Start the server
 const PORT = process.env.PORT || 3000;
