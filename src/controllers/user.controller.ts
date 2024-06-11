@@ -1,32 +1,20 @@
-import { Controller, Post, Get, Route, Body, SuccessResponse, Tags, Header, Request, Security, Response, Middlewares, FormField, UploadedFile, Produces} from 'tsoa';
+import { Controller, Post, Get, Route, Body, SuccessResponse, Tags, Header, Request, Security, Response, Middlewares, FormField, UploadedFile} from 'tsoa';
 import UserModel, { User, DocUser } from "../../models/user"
 import { isValidCreateUser, isValidEmail } from '../utils/createUser.validator';
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv';
 import bcrypt from "bcrypt";
 import { Role } from '../../models/user';
-import { ImageModel } from 'models/images';
-import { File } from 'buffer';
-import multer from "multer"
 import path = require('path');
-import {Request as ExpressRequest, Response as ExpressResponse} from 'express'
+import fs from "fs"
+import { v4 as uuidv4 } from 'uuid'; // Import the uuid library
+import ImageModel  from "../../models/imageModel"
+
 
 dotenv.config();
 const jwtSecret = process.env.jwtSecret;
 const salt = 10
 
-
-const storage = multer.diskStorage({
-    destination: path.join(__dirname, '..', 'public', 'uploads'), // Set the destination directory
-    filename: (req, file, cb) => {
-      const timestamp = Date.now(); // Generate a unique timestamp
-      const extension = path.extname(file.originalname); // Get the file extension
-      const filename = `${timestamp}${extension}`; // Construct the filename with timestamp and extension
-      cb(null, filename); // Call the callback with the constructed filename
-    },
-  });
-  
-const upload = multer({ storage }); // Create the Multer instance with the configured storage
 interface login{
     email : string,
     password: string,
@@ -38,6 +26,12 @@ interface createResult {
     role : Role
 }
 type loginResult = createResult;
+
+interface ImageResult
+{
+    name: String,
+    description: String
+}
 
 
 @Route('user')
@@ -52,10 +46,17 @@ export class UserController extends Controller {
     @SuccessResponse('200', 'User Object')
     @Response('500', 'Internal Server Error')
     @Response('400', 'Bad Request')
+    @Response('409', "User already exits")
    @Header()
     @Post('create')
     public async createUser(@Body() requestBody: User): Promise<DocUser | String>{
         try {
+            const existUser = await UserModel.findOne({email:requestBody.email})
+            if(existUser)
+                {
+                    this.setStatus(409);
+                    throw new Error("User already Exists");
+                }
             if(!isValidCreateUser(requestBody.username, requestBody.email, requestBody.password))
                 {
                     this.setStatus(400);
@@ -98,7 +99,7 @@ export class UserController extends Controller {
 @Response('500', 'Internal Servel Error')
 // @Security('cookieAuth')
 @Security("BearerAuth")
-public async getUsers(@Request() req: any): Promise<DocUser[] | String> {       
+public async getUsers(@Request() req: Express.Request): Promise<DocUser[] | String> {       
     try {
         const users: DocUser[] = await UserModel.find();
         return JSON.parse(JSON.stringify(users));
@@ -192,32 +193,82 @@ public async getllUsers(@Request() req: any): Promise<DocUser[] | String> {
             return "Internal Server Error";
         }
     } 
+    
 }
-      
-@Post('uploadImage')
-  @SuccessResponse('200', 'Image uploaded successfully')
-  @Response('500', 'Internal Server Error')
-  public async uploadImage(
-    @Request() request: Express.Request,
-    @FormField() description: string,
-    @UploadedFile('file') file: Express.Multer.File
-  ): Promise<string> {
-    try {
-    //   await new Promise<void>((resolve, reject) => {
-    //     upload.single('file')(request, request.res, (error) => {
-    //       if (error) {
-    //         reject(error);
-    //       } else {
-    //         resolve();
-    //       }
-    //     });
-    //   });
 
-      return `Image uploaded successfully. Filename is ${file.filename}`;
-    } catch (error) {
-      return 'Error occurred while uploading image';
-    }
+/**
+ * Upload Image
+ * @summary Image Upload
+ */
+@Post('uploadImage')
+@SuccessResponse('200', 'Image uploaded successfully')
+@Response('500', 'Internal Server Error')
+public async uploadImage(
+  @Request() request: any,
+  @FormField() description: string,
+  @UploadedFile('file') file: Express.Multer.File
+): Promise<string> {
+  try {
+    const uploadsDir = path.join(__dirname, '../../public/uploads');
+            // Ensure the uploads directory exists
+            if (!fs.existsSync(uploadsDir)) {
+                fs.mkdirSync(uploadsDir, { recursive: true });
+            }
+            // Assuming req.file contains the file information from multer
+            if (!file) {
+                throw new Error('No file uploaded.');
+            }
+            // Extract file extension
+            const fileExtension = path.extname(file.originalname);
+            // Generate a unique filename using UUID
+            const uniqueFilename = `${uuidv4()}${fileExtension}`;
+            const filePath = path.join(uploadsDir, uniqueFilename);
+            // Write the file to the uploads directory
+            fs.writeFileSync(filePath, file.buffer);
+
+            const newImage =  new ImageModel();
+            newImage.name = uniqueFilename;
+            newImage.description = description;
+            await ImageModel.create(newImage);
+    
+    
+    // Use multer to handle the file upload
+    // await new Promise<void>((resolve, reject) => {
+    //   upload.single('file')(request, response, (err: any) => {
+    //     if (err) {
+    //       reject(err);
+    //     } else {
+    //       resolve();
+    //     }
+    //   });
+    // });
+
+
+    // Return a success response with the saved file information
+    return `Image uploaded successfully.`;
+  } catch (error) {
+    console.error(error);
+    return 'Error occurred while uploading image';
   }
+}
+
+@Get("get-images")
+@SuccessResponse('200', 'Array of objects containing image names and description')
+@Response('500', 'Internal Server Error')
+public async getImages():Promise<ImageResult[] | String>
+{
+    try{
+        this.setStatus(200);
+        return await ImageModel.find({}, { _id: 0, __v: 0, createdAt:0});
+    }
+    catch(error)
+    {
+        this.setStatus(500);
+        return "Internal Error Occured"
+    }
+}
+
+
 
 
 }

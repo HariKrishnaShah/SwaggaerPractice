@@ -109,6 +109,22 @@
 			"type": "object",
 			"additionalProperties": false
 		},
+		"ImageResult": {
+			"properties": {
+				"name": {
+					"type": "string"
+				},
+				"description": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"name",
+				"description"
+			],
+			"type": "object",
+			"additionalProperties": false
+		},
 		"Details": {
 			"properties": {
 				"id": {
@@ -147,6 +163,9 @@
 					},
 					"400": {
 						"description": "Bad Request"
+					},
+					"409": {
+						"description": "User already exits"
 					},
 					"500": {
 						"description": "Internal Server Error"
@@ -301,6 +320,8 @@
 				"consumes": [
 					"multipart/form-data"
 				],
+				"description": "Upload Image",
+				"summary": "Image Upload",
 				"tags": [
 					"User"
 				],
@@ -319,6 +340,30 @@
 						"type": "file"
 					}
 				]
+			}
+		},
+		"/user/get-images": {
+			"get": {
+				"operationId": "GetImages",
+				"produces": [
+					"application/json"
+				],
+				"responses": {
+					"200": {
+						"description": "Array of objects containing image names and description",
+						"schema": {
+							"type": "object"
+						}
+					},
+					"500": {
+						"description": "Internal Server Error"
+					}
+				},
+				"tags": [
+					"User"
+				],
+				"security": [],
+				"parameters": []
 			}
 		},
 		"/random": {
